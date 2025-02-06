@@ -7,7 +7,7 @@ SECRET_KEY = 'django-insecure-t#bah9f8wz-&l0(lj(9z36z!ms+ia^viie80^edw!50nnwbecn
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'memorylog.io']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'api.memorylog.io']
 
 
 # Application definition
@@ -27,6 +27,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -61,8 +62,11 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'memorylog_db',
+        'USER': 'pabrubio',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
@@ -106,6 +110,9 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # My settings
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880
 
 CORS_ALLOWED_ORIGINS = [
     "https://memorylog.io",

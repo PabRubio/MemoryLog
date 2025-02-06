@@ -6,6 +6,7 @@ import { auth } from '../firebase/firebase';
 const MemoryLog = () => {
   const [memories, setMemories] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [hasPostedToday, setHasPostedToday] = useState(false);
   const [newSnippet, setNewSnippet] = useState({
     image: null,
     caption: '',
@@ -21,21 +22,28 @@ const MemoryLog = () => {
         const response = await fetch(`${serverURL}/api/get_snippets/`, {
           headers: { Authorization: idToken },
         });
-  
+
         if (response.ok) {
           const snippets = await response.json();
-          const sortedSnippets = snippets.sort((a, b) => 
-            new Date(b.date) - new Date(a.date)
-          );
+          const sortedSnippets = snippets.sort((a, b) => {
+            const dateComparison = new Date(b.date) - new Date(a.date);
+            return dateComparison === 0 ? b.id - a.id : dateComparison;
+          });
+
           setMemories(sortedSnippets);
+
+          const todayDateString = new Date().toDateString();
+          setHasPostedToday(sortedSnippets.some(snippet =>
+            new Date(snippet.date).toDateString() === todayDateString
+          ));
         } else {
-          console.error((await response.json()).error || 'Failed to fetch snippets');
+          console.error('Failed to fetch snippets');
         }
       } catch (err) {
-        console.error('Failed to fetch snippets', err);
+        console.error(err.code || err);
       }
     };
-  
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         fetchSnippets(user);
@@ -43,9 +51,9 @@ const MemoryLog = () => {
         console.warn('No user is logged in');
       }
     });
-  
+
     return () => unsubscribe();
-  }, []);   
+  }, []);
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
@@ -65,17 +73,17 @@ const MemoryLog = () => {
 
   const handleSaveSnippet = async () => {
     if (!newSnippet.image || !newSnippet.caption) return;
-  
+
     const newMemory = {
       image: newSnippet.image,
       caption: newSnippet.caption,
       emoji: newSnippet.emoji,
     };
-  
+
     try {
       const user = auth.currentUser;
       if (!user) return console.warn("User not authenticated");
-  
+
       const idToken = await user.getIdToken();
       const response = await fetch(`${serverURL}/api/create_snippet/`, {
         method: 'POST',
@@ -85,7 +93,7 @@ const MemoryLog = () => {
         },
         body: JSON.stringify(newMemory),
       });
-  
+
       if (response.ok) {
         const savedSnippet = await response.json();
         const fullSnippet = {
@@ -93,37 +101,38 @@ const MemoryLog = () => {
           id: savedSnippet.id,
           date: new Date().toISOString(),
         };
-  
+
         setMemories([fullSnippet, ...memories]);
+        setHasPostedToday(true);
         handleCloseModal();
       } else {
-        const errorData = await response.json();
-        console.error(errorData.error || 'Failed to save snippet');
+        console.error('Failed to save snippet');
       }
     } catch (err) {
-      console.error('Failed to save snippet', err);
+      console.error(err.code || err);
     }
-  };  
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col px-4">
       <div className="w-full max-w-6xl mx-auto py-8">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-600">MemoryLog</h1>
-          <button 
+          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-600 leading-relaxed">MemoryLog</h1>
+          <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 bg-blue-600 text-gray-100 px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors text-lg"
+            disabled={hasPostedToday}
+            className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-colors text-lg whitespace-nowrap ${hasPostedToday ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-blue-600 text-gray-100 hover:bg-blue-700'}`}
           >
             <PlusCircle size={20} />
-            <span>New Snippet</span>
+            <span className="hidden min-[420px]:inline">New Snippet</span>
           </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {memories.map((memory, index) => (
-            <div 
-              key={index} 
-              className="overflow-hidden hover:shadow-lg transition-shadow bg-gray-800 border border-gray-700 rounded-lg transform hover:scale-105 transition-transform duration-200"
+          {memories.map((memory) => (
+            <div
+              key={memory.id}
+              className="overflow-hidden hover:shadow-lg transition-shadow bg-gray-800 border border-gray-700 rounded-lg transform hover:scale-[1.03] transition-transform duration-200"
             >
               <div className="p-3">
                 <div className="flex justify-between items-center mb-2">
@@ -151,7 +160,7 @@ const MemoryLog = () => {
                 />
               </div>
               <div className="p-3">
-                <p className="text-base text-gray-300 relative top-1.5">{memory.caption}</p>
+                <p className="text-base text-gray-300 relative top-1.5 whitespace-nowrap overflow-hidden text-ellipsis">{memory.caption}</p>
               </div>
             </div>
           ))}
@@ -163,7 +172,7 @@ const MemoryLog = () => {
           <div className="bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700 w-96 relative">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold text-gray-100">Create New Snippet</h2>
-              <button 
+              <button
                 onClick={handleCloseModal}
                 className="text-gray-400 hover:text-gray-200 transition-colors"
               >
@@ -171,21 +180,21 @@ const MemoryLog = () => {
               </button>
             </div>
             <div className="space-y-4">
-              <input 
-                type="file" 
-                accept="image/*" 
+              <input
+                type="file"
+                accept="image/*"
                 onChange={handleImageUpload}
-                className="hidden" 
+                className="hidden"
                 id="imageUpload"
               />
-              <label 
-                htmlFor="imageUpload" 
+              <label
+                htmlFor="imageUpload"
                 className="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-gray-500 transition-colors block cursor-pointer"
               >
                 {newSnippet.image ? (
-                  <img 
-                    src={newSnippet.image} 
-                    alt="Uploaded" 
+                  <img
+                    src={newSnippet.image}
+                    alt="Uploaded"
                     className="w-full h-40 object-contain rounded-lg"
                   />
                 ) : (
@@ -197,7 +206,7 @@ const MemoryLog = () => {
               </label>
               <textarea
                 placeholder="What's the story behind this moment?"
-                className="w-full p-2 rounded-lg bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-2 rounded-lg bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500 resize-none"
                 rows={3}
                 value={newSnippet.caption}
                 onChange={(e) => {
@@ -209,18 +218,16 @@ const MemoryLog = () => {
               <div className="flex justify-between items-center">
                 <div className="flex gap-2">
                   {['😊', '❤️', '😢', '😎'].map((emoji) => (
-                    <button 
+                    <button
                       key={emoji}
                       onClick={() => setNewSnippet((prev) => ({ ...prev, emoji }))}
-                      className={`p-2 hover:bg-gray-700 rounded transition-colors ${
-                        newSnippet.emoji === emoji ? 'bg-blue-600' : ''
-                      }`}
+                      className={`p-2 hover:bg-gray-700 rounded transition-colors ${newSnippet.emoji === emoji ? 'bg-blue-600' : ''}`}
                     >
                       {emoji}
                     </button>
                   ))}
                 </div>
-                <button 
+                <button
                   onClick={handleSaveSnippet}
                   disabled={!newSnippet.image || !newSnippet.caption}
                   className="bg-blue-600 text-gray-100 px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

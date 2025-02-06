@@ -3,6 +3,7 @@
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
+import datetime
 
 
 class Migration(migrations.Migration):
@@ -18,7 +19,7 @@ class Migration(migrations.Migration):
             name='Snippet',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateField(auto_now_add=True)),
+                ('date', models.DateField(default=datetime.date.today)),
                 ('image', models.TextField()),
                 ('caption', models.CharField(max_length=50)),
                 ('emoji', models.CharField(max_length=2)),

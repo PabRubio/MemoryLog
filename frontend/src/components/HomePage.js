@@ -6,17 +6,17 @@ const HomePage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col px-4">
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
       <div className="w-full max-w-6xl mx-auto py-8">
-        <header className="text-center py-20">
-          <h1 className="text-5xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-600">
+        <header className="text-center py-12">
+          <h1 className="text-5xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-600 leading-relaxed">
             MemoryLog
           </h1>
           <p className="text-2xl text-gray-400 max-w-3xl mx-auto mb-10">
-            Capture, cherish, and relive your most precious moments in a beautiful, 
+            Capture and relive your moments in a
             personal digital journal.
           </p>
-          <button 
+          <button
             onClick={() => navigate('/auth')}
             className="flex items-center gap-3 mx-auto bg-blue-600 text-gray-100 px-8 py-4 rounded-lg hover:bg-blue-700 transition-colors text-xl"
           >
@@ -31,7 +31,7 @@ const HomePage = () => {
               <Camera className="mx-auto mb-6 text-blue-500" size={64} />
               <h2 className="text-2xl font-semibold mb-3">Capture Moments</h2>
               <p className="text-gray-400">
-                Easily upload photos and add meaningful captions to your personal memory collection.
+                Easily upload photos and add meaningful captions to your private memory collection.
               </p>
             </div>
           </div>
@@ -41,7 +41,7 @@ const HomePage = () => {
               <Heart className="mx-auto mb-6 text-red-500" size={64} />
               <h2 className="text-2xl font-semibold mb-3">Express Emotions</h2>
               <p className="text-gray-400">
-                Choose from a range of emojis to capture the feeling behind each memory.
+                Choose from a range of emojis to capture the feeling behind each and every moment.
               </p>
             </div>
           </div>
@@ -51,14 +51,14 @@ const HomePage = () => {
               <BookOpen className="mx-auto mb-6 text-green-500" size={64} />
               <h2 className="text-2xl font-semibold mb-3">Preserve Stories</h2>
               <p className="text-gray-400">
-                Create a personal archive of your life's most cherished moments and memories.
+                Create a personal archive of your life's most unforgettable moments and memories.
               </p>
             </div>
           </div>
         </section>
 
-        <footer className="text-center text-gray-500 py-8 border-t border-gray-700">
-          <p>© 2025 MemoryLog. Preserve your moments, treasure your stories.</p>
+        <footer className="text-center text-gray-500 py-10 border-t border-gray-700">
+          <p>© 2025 <a href="/snippets">MemoryLog.</a> Life is a collection of moments.</p>
         </footer>
       </div>
     </div>

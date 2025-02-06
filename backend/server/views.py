@@ -11,13 +11,13 @@ def create_snippet(request):
         id_token = request.headers.get('Authorization')
         if not id_token:
             return JsonResponse({"error": "Authorization header missing"}, status=401)
-        
+
         try:
             decoded_token = firebase_auth.verify_id_token(id_token)
             firebase_user_id = decoded_token.get('uid')
 
             user = User.objects.get(username=firebase_user_id)
-            
+
             data = json.loads(request.body)
             snippet = Snippet.objects.create(
                 user=user,
@@ -38,7 +38,7 @@ def get_snippets(request):
     id_token = request.headers.get('Authorization')
     if not id_token:
         return JsonResponse({"error": "Authorization header missing"}, status=401)
-    
+
     try:
         decoded_token = firebase_auth.verify_id_token(id_token)
         firebase_user_id = decoded_token.get('uid')
@@ -48,6 +48,7 @@ def get_snippets(request):
         snippets = Snippet.objects.filter(user=user)
         data = [
             {
+                "id": snippet.id,
                 "date": snippet.date,
                 "image": snippet.image,
                 "caption": snippet.caption,
